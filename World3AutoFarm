@@ -54,6 +54,7 @@ local shared = odh_shared_plugins
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 
 local PLACE_ID = 93411036959889
@@ -65,6 +66,7 @@ local features = {
     targetStage = "Stage 1",
     semiGodMode = false,
     noclip = false,
+    antiLag = false,
 }
 
 local stage1Waypoints = {
@@ -334,7 +336,6 @@ for _, wp in ipairs(stage9ExtraWaypoints) do
     table.insert(waypoints["Stage 9"], wp)
 end
 
--- Boost the last waypoint of every stage
 local function boostAllStages()
     for stage, wp in pairs(waypoints) do
         if #wp > 0 then
@@ -369,6 +370,8 @@ local semiGodMaid = nil
 local trackedParts = {}
 local noclipMaid = nil
 local noclipTracked = {}
+local antiLagMaid = nil
+local Terrain = Workspace.Terrain
 
 local function shouldDisable(part)
     if part.Name == "LavaCollide" or part.Name == "LavaPart" then
@@ -496,6 +499,99 @@ local function disableNoclip()
         end
     end
     noclipTracked = {}
+end
+
+local function Optimize(obj)
+    if obj:IsA("MeshPart") then
+        obj.Material = Enum.Material.Plastic
+        obj.Reflectance = 0
+        obj.CastShadow = false
+        obj.TextureID = ""
+
+        local sa = obj:FindFirstChildOfClass("SurfaceAppearance")
+        if sa then
+            sa:Destroy()
+        end
+
+    elseif obj:IsA("BasePart") then
+        obj.Material = Enum.Material.Plastic
+        obj.Reflectance = 0
+        obj.CastShadow = false
+
+    elseif obj:IsA("Decal") or obj:IsA("Texture") then
+        obj.Transparency = 1
+
+    elseif obj:IsA("SurfaceAppearance") then
+        obj:Destroy()
+
+    elseif obj:IsA("ParticleEmitter") then
+        obj.Enabled = false
+        obj.Rate = 0
+        obj.Lifetime = NumberRange.new(0)
+        obj.Speed = NumberRange.new(0)
+
+    elseif obj:IsA("Trail") then
+        obj.Enabled = false
+        obj.Lifetime = 0
+
+    elseif obj:IsA("Beam") then
+        obj.Enabled = false
+
+    elseif obj:IsA("Explosion") then
+        obj.BlastPressure = 1
+        obj.BlastRadius = 1
+
+    elseif obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") or obj:IsA("Highlight") or obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+        obj.Enabled = false
+
+    elseif obj:IsA("PostEffect") then
+        obj.Enabled = false
+    end
+end
+
+local function enableAntiLag()
+    if antiLagMaid then
+        antiLagMaid:DoCleaning()
+        antiLagMaid = nil
+    end
+    
+    antiLagMaid = nicolas.new()
+    
+    Terrain.WaterWaveSize = 0
+    Terrain.WaterWaveSpeed = 0
+    Terrain.WaterReflectance = 0
+    Terrain.WaterTransparency = 0
+    
+    Lighting.GlobalShadows = false
+    Lighting.Brightness = 0.8
+    Lighting.FogEnd = 9e9
+    Lighting.EnvironmentDiffuseScale = 0
+    Lighting.EnvironmentSpecularScale = 0
+    
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
+    
+    for _, v in ipairs(Lighting:GetChildren()) do
+        if v:IsA("PostEffect") then
+            v.Enabled = false
+        end
+    end
+    
+    for _, obj in ipairs(game:GetDescendants()) do
+        Optimize(obj)
+    end
+    
+    antiLagMaid:GiveTask(game.DescendantAdded:Connect(function(obj)
+        task.defer(Optimize, obj)
+    end))
+end
+
+local function disableAntiLag()
+    if antiLagMaid then
+        antiLagMaid:DoCleaning()
+        antiLagMaid = nil
+    end
 end
 
 local function stopFacing()
@@ -801,11 +897,22 @@ section:AddToggle("Noclip", function(bool)
     end
 end)
 
+section:AddToggle("Anti Lag", function(bool)
+    features.antiLag = bool
+    if bool then
+        enableAntiLag()
+    else
+        disableAntiLag()
+    end
+end)
+
 RootNicolas:GiveTask(function()
     features.autoFarm = false
     features.semiGodMode = false
     features.noclip = false
+    features.antiLag = false
     stopAutoFarm()
     disableSemiGodMode()
     disableNoclip()
+    disableAntiLag()
 end)
