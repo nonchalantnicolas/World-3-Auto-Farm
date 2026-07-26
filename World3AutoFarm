@@ -367,6 +367,8 @@ local autoRotateThread
 
 local semiGodMaid = nil
 local trackedParts = {}
+local noclipMaid = nil
+local noclipTracked = {}
 
 local function shouldDisable(part)
     if part.Name == "LavaCollide" or part.Name == "LavaPart" then
@@ -438,9 +440,6 @@ local function disableSemiGodMode()
     trackedParts = {}
 end
 
-local noclipMaid = nil
-local noclipTracked = {}
-
 local function enableNoclip()
     if noclipMaid then
         noclipMaid:DoCleaning()
@@ -450,17 +449,34 @@ local function enableNoclip()
     noclipMaid = nicolas.new()
     noclipTracked = {}
     
-    for _, part in ipairs(Workspace:GetDescendants()) do
-        if part:IsA("BasePart") then
-            noclipTracked[part] = part.CanCollide
-            part.CanCollide = false
+    local function applyNoclip()
+        local character = LocalPlayer.Character
+        if not character then return end
+        
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                noclipTracked[part] = part.CanCollide
+                part.CanCollide = false
+            end
         end
     end
     
-    noclipMaid:GiveTask(Workspace.DescendantAdded:Connect(function(part)
-        if features.noclip and part:IsA("BasePart") and not noclipTracked[part] then
-            noclipTracked[part] = part.CanCollide
-            part.CanCollide = false
+    applyNoclip()
+    
+    noclipMaid:GiveTask(LocalPlayer.CharacterAdded:Connect(function()
+        task.wait(0.5)
+        applyNoclip()
+    end))
+    
+    noclipMaid:GiveTask(RunService.Stepped:Connect(function()
+        if not features.noclip then return end
+        local character = LocalPlayer.Character
+        if not character then return end
+        
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
         end
     end))
 end
@@ -471,9 +487,12 @@ local function disableNoclip()
         noclipMaid = nil
     end
     
-    for part, originalState in pairs(noclipTracked) do
-        if part and part.Parent then
-            part.CanCollide = originalState
+    local character = LocalPlayer.Character
+    if character then
+        for part, originalState in pairs(noclipTracked) do
+            if part and part.Parent then
+                part.CanCollide = originalState
+            end
         end
     end
     noclipTracked = {}
