@@ -142,7 +142,8 @@ local stage6ExtraWaypoints = {
     Vector3.new(-1441,500,1485),
     Vector3.new(-2035,509,1486),
     Vector3.new(-2064,442,1486),
-    Vector3.new(-2063,444,1458),
+    -- Stage 6 final waypoint with boosted Y (original was -2063,444,1458)
+    Vector3.new(-2063,454,1458), -- Boosted Y by 10
 }
 
 local stage7ExtraWaypoints = {
@@ -562,6 +563,7 @@ local function moveToWaypoints(stageWaypoints)
     if not stageWaypoints then return end
     
     died = false
+    local isStage6 = (stageWaypoints == waypoints["Stage 6"])
     
     for i, targetPos in ipairs(stageWaypoints) do
         if not features.autoFarm then
@@ -578,6 +580,10 @@ local function moveToWaypoints(stageWaypoints)
         moving = true
         startFacing()
         
+        -- Check if this is the last waypoint and it's Stage 6
+        local isLastWaypoint = (i == #stageWaypoints)
+        local isStage6Final = isStage6 and isLastWaypoint
+        
         while moving do
             if not features.autoFarm then
                 stopMoving()
@@ -593,14 +599,44 @@ local function moveToWaypoints(stageWaypoints)
             local distance = offset.Magnitude
             
             if distance < 4 then
-                stopMoving()
-                break
+                if isStage6Final then
+                    -- Keep moving toward the boosted Y position for 1 second (hover)
+                    local startTime = tick()
+                    while tick() - startTime < 1 do
+                        if not features.autoFarm or died or not hrp or not humanoid then
+                            stopMoving()
+                            return
+                        end
+                        local hoverOffset = targetPos - hrp.Position
+                        local hoverDistance = hoverOffset.Magnitude
+                        if hoverDistance > 0.5 then
+                            local hoverDir = hoverOffset.Unit
+                            humanoid:Move(hoverDir, false)
+                            hrp.AssemblyLinearVelocity = hoverDir * 10
+                        else
+                            -- Lock in place at the boosted Y position
+                            hrp.AssemblyLinearVelocity = Vector3.zero
+                        end
+                        task.wait()
+                    end
+                    stopMoving()
+                    break
+                else
+                    stopMoving()
+                    break
+                end
             end
             
             local direction = offset.Unit
             humanoid:Move(direction, false)
             hrp.AssemblyLinearVelocity = direction * currentSpeed
             task.wait()
+        end
+        
+        if isStage6Final then
+            -- After the hover, stop and let gravity drop you
+            stopMoving()
+            break
         end
     end
 end
