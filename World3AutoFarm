@@ -63,6 +63,7 @@ local WORLD_1_ID = 95082159892680
 local features = {
     autoFarm = false,
     targetStage = "Stage 1",
+    semiGodMode = false,
 }
 
 local stage1Waypoints = {
@@ -73,7 +74,7 @@ local stage1Waypoints = {
     Vector3.new(-1480,-77,-576),
     Vector3.new(-1482,-70,-532),
     Vector3.new(-1456,-70,-519),
-    Vector3.new(-1483,-68,-517), -- WinBlock for Stage 1
+    Vector3.new(-1483,-68,-517),
 }
 
 local stage2ExtraWaypoints = {
@@ -82,7 +83,7 @@ local stage2ExtraWaypoints = {
     Vector3.new(-1458,-59,-392),
     Vector3.new(-1458,-58,-265),
     Vector3.new(-1455,-58,-17),
-    Vector3.new(-1481,-56,-17), -- WinBlock for Stage 2
+    Vector3.new(-1481,-56,-17),
 }
 
 local stage3ExtraWaypoints = {
@@ -96,7 +97,7 @@ local stage3ExtraWaypoints = {
     Vector3.new(-1453,223,181),
     Vector3.new(-1456,223,228),
     Vector3.new(-1455,214,330),
-    Vector3.new(-1482,216,332), -- WinBlock for Stage 3
+    Vector3.new(-1482,216,332),
 }
 
 local waypoints = {
@@ -105,7 +106,6 @@ local waypoints = {
     ["Stage 3"] = {},
 }
 
--- Stage 2 = Stage 1 waypoints WITHOUT the last one + Stage 2 extra waypoints
 for i = 1, #stage1Waypoints - 1 do
     table.insert(waypoints["Stage 2"], stage1Waypoints[i])
 end
@@ -113,7 +113,6 @@ for _, wp in ipairs(stage2ExtraWaypoints) do
     table.insert(waypoints["Stage 2"], wp)
 end
 
--- Stage 3 = Stage 1 waypoints WITHOUT the last one + Stage 2 extra waypoints WITHOUT the last one + Stage 3 extra waypoints
 for i = 1, #stage1Waypoints - 1 do
     table.insert(waypoints["Stage 3"], stage1Waypoints[i])
 end
@@ -138,6 +137,79 @@ local facingConn
 local att
 local angVel
 local autoRotateThread
+
+local semiGodMaid = nil
+local tracked = {}
+
+local function shouldDisable(part)
+    if part.Name == "LavaCollide" or part.Name == "LavaPart" then
+        return true
+    end
+
+    local parent = part.Parent
+    while parent do
+        if parent.Name == "MovingWalls" then
+            return true
+        end
+        parent = parent.Parent
+    end
+
+    return false
+end
+
+local function track(obj)
+    if not obj:IsA("BasePart") then
+        return
+    end
+
+    if shouldDisable(obj) then
+        tracked[obj] = true
+        obj.CanTouch = false
+    end
+end
+
+local function enableSemiGodMode()
+    if semiGodMaid then
+        semiGodMaid:DoCleaning()
+        semiGodMaid = nil
+    end
+    
+    semiGodMaid = nicolas.new()
+    tracked = {}
+    
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        track(obj)
+    end
+    
+    semiGodMaid:GiveTask(Workspace.DescendantAdded:Connect(track))
+    
+    semiGodMaid:GiveTask(RunService.Heartbeat:Connect(function()
+        for part in pairs(tracked) do
+            if part.Parent then
+                if part.CanTouch then
+                    part.CanTouch = false
+                end
+            else
+                tracked[part] = nil
+            end
+        end
+    end))
+end
+
+local function disableSemiGodMode()
+    if semiGodMaid then
+        semiGodMaid:DoCleaning()
+        semiGodMaid = nil
+    end
+    
+    for part in pairs(tracked) do
+        if part.Parent then
+            part.CanTouch = true
+        end
+        tracked[part] = nil
+    end
+    tracked = {}
+end
 
 local function stopFacing()
     if facingConn then
@@ -381,6 +453,15 @@ section:AddToggle("Enable Auto Farm", function(bool)
     end
 end)
 
+section:AddToggle("Semi God Mode", function(bool)
+    features.semiGodMode = bool
+    if bool then
+        enableSemiGodMode()
+    else
+        disableSemiGodMode()
+    end
+end)
+
 section:AddDropdown("Select Stage", {
     "Stage 1",
     "Stage 2",
@@ -397,5 +478,7 @@ end)
 
 RootNicolas:GiveTask(function()
     features.autoFarm = false
+    features.semiGodMode = false
     stopAutoFarm()
+    disableSemiGodMode()
 end)
