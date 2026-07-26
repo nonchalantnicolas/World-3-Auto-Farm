@@ -66,7 +66,7 @@ local features = {
     targetStage = "Stage 1",
     semiGodMode = false,
     noclip = false,
-    antiLag = false,
+    fpsBoost = false,
 }
 
 local stage1Waypoints = {
@@ -370,7 +370,7 @@ local semiGodMaid = nil
 local trackedParts = {}
 local noclipMaid = nil
 local noclipTracked = {}
-local antiLagMaid = nil
+local fpsBoostMaid = nil
 local Terrain = Workspace.Terrain
 
 local function shouldDisable(part)
@@ -549,13 +549,13 @@ local function Optimize(obj)
     end
 end
 
-local function enableAntiLag()
-    if antiLagMaid then
-        antiLagMaid:DoCleaning()
-        antiLagMaid = nil
+local function enableFpsBoost()
+    if fpsBoostMaid then
+        fpsBoostMaid:DoCleaning()
+        fpsBoostMaid = nil
     end
     
-    antiLagMaid = nicolas.new()
+    fpsBoostMaid = nicolas.new()
     
     Terrain.WaterWaveSize = 0
     Terrain.WaterWaveSpeed = 0
@@ -582,15 +582,15 @@ local function enableAntiLag()
         Optimize(obj)
     end
     
-    antiLagMaid:GiveTask(game.DescendantAdded:Connect(function(obj)
+    fpsBoostMaid:GiveTask(game.DescendantAdded:Connect(function(obj)
         task.defer(Optimize, obj)
     end))
 end
 
-local function disableAntiLag()
-    if antiLagMaid then
-        antiLagMaid:DoCleaning()
-        antiLagMaid = nil
+local function disableFpsBoost()
+    if fpsBoostMaid then
+        fpsBoostMaid:DoCleaning()
+        fpsBoostMaid = nil
     end
 end
 
@@ -897,12 +897,12 @@ section:AddToggle("Noclip", function(bool)
     end
 end)
 
-section:AddToggle("Anti Lag", function(bool)
-    features.antiLag = bool
+section:AddToggle("FPS Boost", function(bool)
+    features.fpsBoost = bool
     if bool then
-        enableAntiLag()
+        enableFpsBoost()
     else
-        disableAntiLag()
+        disableFpsBoost()
     end
 end)
 
@@ -910,9 +910,9 @@ RootNicolas:GiveTask(function()
     features.autoFarm = false
     features.semiGodMode = false
     features.noclip = false
-    features.antiLag = false
+    features.fpsBoost = false
     stopAutoFarm()
     disableSemiGodMode()
     disableNoclip()
-    disableAntiLag()
+    disableFpsBoost()
 end)
