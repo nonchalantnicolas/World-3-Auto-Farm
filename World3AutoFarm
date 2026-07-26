@@ -373,6 +373,10 @@ local noclipTracked = {}
 local fpsBoostMaid = nil
 local Terrain = Workspace.Terrain
 
+local function isWorld3()
+    return game.PlaceId == PLACE_ID
+end
+
 local function shouldDisable(part)
     if part.Name == "LavaCollide" or part.Name == "LavaPart" then
         return true
@@ -401,6 +405,12 @@ local function track(obj)
 end
 
 local function enableSemiGodMode()
+    if not isWorld3() then
+        shared.Notify("Semi God Mode only works in World 3!", 3)
+        features.semiGodMode = false
+        return
+    end
+    
     if semiGodMaid then
         semiGodMaid:DoCleaning()
         semiGodMaid = nil
@@ -444,6 +454,12 @@ local function disableSemiGodMode()
 end
 
 local function enableNoclip()
+    if not isWorld3() then
+        shared.Notify("Noclip only works in World 3!", 3)
+        features.noclip = false
+        return
+    end
+    
     if noclipMaid then
         noclipMaid:DoCleaning()
         noclipMaid = nil
@@ -550,6 +566,12 @@ local function Optimize(obj)
 end
 
 local function enableFpsBoost()
+    if not isWorld3() then
+        shared.Notify("FPS Boost only works in World 3!", 3)
+        features.fpsBoost = false
+        return
+    end
+    
     if fpsBoostMaid then
         fpsBoostMaid:DoCleaning()
         fpsBoostMaid = nil
@@ -808,16 +830,9 @@ local function moveToWaypoints(stageWaypoints)
 end
 
 local function startAutoFarm()
-    local currentPlaceId = game.PlaceId
-    
-    if currentPlaceId == WORLD_1_ID then
-        shared.Notify("Son this only works in world 3", 3)
-        return
-    elseif currentPlaceId == WORLD_2_ID then
-        shared.Notify("Son this only works in world 3", 3)
-        return
-    elseif currentPlaceId ~= PLACE_ID then
-        shared.Notify("Wrong game son", 3)
+    if not isWorld3() then
+        shared.Notify("Auto Farm only works in World 3!", 3)
+        features.autoFarm = false
         return
     end
     
