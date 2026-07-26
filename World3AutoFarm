@@ -65,18 +65,37 @@ local features = {
     targetStage = "Stage 1",
 }
 
-local waypoints = {
-    ["Stage 1"] = {
-        Vector3.new(-1456,-161,-864),
-        Vector3.new(-1480,-161,-864),
-        Vector3.new(-1482,-140,-777),
-        Vector3.new(-1480,-108,-675),
-        Vector3.new(-1480,-77,-576),
-        Vector3.new(-1482,-70,-532),
-        Vector3.new(-1456,-70,-519),
-        Vector3.new(-1483,-68,-517),
-    },
+local stage1Waypoints = {
+    Vector3.new(-1456,-161,-864),
+    Vector3.new(-1480,-161,-864),
+    Vector3.new(-1482,-140,-777),
+    Vector3.new(-1480,-108,-675),
+    Vector3.new(-1480,-77,-576),
+    Vector3.new(-1482,-70,-532),
+    Vector3.new(-1456,-70,-519),
+    Vector3.new(-1483,-68,-517),
 }
+
+local stage2ExtraWaypoints = {
+    Vector3.new(-1456,-71,-489),
+    Vector3.new(-1457,-70,-438),
+    Vector3.new(-1458,-59,-392),
+    Vector3.new(-1458,-58,-265),
+    Vector3.new(-1455,-58,-17),
+    Vector3.new(-1481,-56,-17),
+}
+
+local waypoints = {
+    ["Stage 1"] = stage1Waypoints,
+    ["Stage 2"] = {},
+}
+
+for _, wp in ipairs(stage1Waypoints) do
+    table.insert(waypoints["Stage 2"], wp)
+end
+for _, wp in ipairs(stage2ExtraWaypoints) do
+    table.insert(waypoints["Stage 2"], wp)
+end
 
 local DEFAULT_SPEED = 160
 local rotationSpeed = 100
