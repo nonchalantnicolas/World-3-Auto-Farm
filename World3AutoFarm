@@ -56,6 +56,10 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 
+local PLACE_ID = 93411036959889
+local WORLD_2_ID = 118941584817777
+local WORLD_1_ID = 95082159892680
+
 local features = {
     autoFarm = false,
     targetStage = "Stage 1",
@@ -274,6 +278,19 @@ local function moveToWaypoints(stageWaypoints)
 end
 
 local function startAutoFarm()
+    local currentPlaceId = game.PlaceId
+    
+    if currentPlaceId == WORLD_1_ID then
+        shared.Notify("Son this only works in world 3", 3)
+        return
+    elseif currentPlaceId == WORLD_2_ID then
+        shared.Notify("Son this only works in world 3", 3)
+        return
+    elseif currentPlaceId ~= PLACE_ID then
+        shared.Notify("Wrong game son", 3)
+        return
+    end
+    
     while features.autoFarm do
         while not getCharacter() do
             task.wait(0.5)
