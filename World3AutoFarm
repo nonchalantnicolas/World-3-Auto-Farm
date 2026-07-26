@@ -128,11 +128,20 @@ local stage4ExtraWaypoints = {
     Vector3.new(-1432,533,759),
 }
 
+local stage5ExtraWaypoints = {
+    Vector3.new(-1404,532,787),
+    Vector3.new(-1157,532,1059),
+    Vector3.new(-1405,532,1306),
+    Vector3.new(-1405,532,1329),
+    Vector3.new(-1432,534,1330),
+}
+
 local waypoints = {
     ["Stage 1"] = stage1Waypoints,
     ["Stage 2"] = {},
     ["Stage 3"] = {},
     ["Stage 4"] = {},
+    ["Stage 5"] = {},
 }
 
 for i = 1, #stage1Waypoints - 1 do
@@ -163,6 +172,22 @@ for i = 1, #stage3ExtraWaypoints - 1 do
 end
 for _, wp in ipairs(stage4ExtraWaypoints) do
     table.insert(waypoints["Stage 4"], wp)
+end
+
+for i = 1, #stage1Waypoints - 1 do
+    table.insert(waypoints["Stage 5"], stage1Waypoints[i])
+end
+for i = 1, #stage2ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 5"], stage2ExtraWaypoints[i])
+end
+for i = 1, #stage3ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 5"], stage3ExtraWaypoints[i])
+end
+for i = 1, #stage4ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 5"], stage4ExtraWaypoints[i])
+end
+for _, wp in ipairs(stage5ExtraWaypoints) do
+    table.insert(waypoints["Stage 5"], wp)
 end
 
 local DEFAULT_SPEED = 160
