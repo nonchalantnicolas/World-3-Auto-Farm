@@ -64,19 +64,8 @@ local features = {
     autoFarm = false,
     targetStage = "Stage 1",
     semiGodMode = false,
+    noclip = false,
 }
-
--- Helper function to boost Y by 10 on the last waypoint
-local function boostLastWaypoint(waypoints)
-    if #waypoints == 0 then return waypoints end
-    local boosted = {}
-    for i = 1, #waypoints - 1 do
-        table.insert(boosted, waypoints[i])
-    end
-    local last = waypoints[#waypoints]
-    table.insert(boosted, Vector3.new(last.X, last.Y + 10, last.Z))
-    return boosted
-end
 
 local stage1Waypoints = {
     Vector3.new(-1456,-161,-864),
@@ -377,7 +366,7 @@ local angVel
 local autoRotateThread
 
 local semiGodMaid = nil
-local tracked = {}
+local trackedParts = {}
 
 local function shouldDisable(part)
     if part.Name == "LavaCollide" or part.Name == "LavaPart" then
@@ -401,7 +390,7 @@ local function track(obj)
     end
 
     if shouldDisable(obj) then
-        tracked[obj] = true
+        trackedParts[obj] = true
         obj.CanTouch = false
     end
 end
@@ -413,7 +402,7 @@ local function enableSemiGodMode()
     end
     
     semiGodMaid = nicolas.new()
-    tracked = {}
+    trackedParts = {}
     
     for _, obj in ipairs(Workspace:GetDescendants()) do
         track(obj)
@@ -422,13 +411,13 @@ local function enableSemiGodMode()
     semiGodMaid:GiveTask(Workspace.DescendantAdded:Connect(track))
     
     semiGodMaid:GiveTask(RunService.Heartbeat:Connect(function()
-        for part in pairs(tracked) do
+        for part in pairs(trackedParts) do
             if part.Parent then
                 if part.CanTouch then
                     part.CanTouch = false
                 end
             else
-                tracked[part] = nil
+                trackedParts[part] = nil
             end
         end
     end))
@@ -440,13 +429,54 @@ local function disableSemiGodMode()
         semiGodMaid = nil
     end
     
-    for part in pairs(tracked) do
+    for part in pairs(trackedParts) do
         if part.Parent then
             part.CanTouch = true
         end
-        tracked[part] = nil
+        trackedParts[part] = nil
     end
-    tracked = {}
+    trackedParts = {}
+end
+
+local noclipMaid = nil
+local noclipTracked = {}
+
+local function enableNoclip()
+    if noclipMaid then
+        noclipMaid:DoCleaning()
+        noclipMaid = nil
+    end
+    
+    noclipMaid = nicolas.new()
+    noclipTracked = {}
+    
+    for _, part in ipairs(Workspace:GetDescendants()) do
+        if part:IsA("BasePart") then
+            noclipTracked[part] = part.CanCollide
+            part.CanCollide = false
+        end
+    end
+    
+    noclipMaid:GiveTask(Workspace.DescendantAdded:Connect(function(part)
+        if features.noclip and part:IsA("BasePart") and not noclipTracked[part] then
+            noclipTracked[part] = part.CanCollide
+            part.CanCollide = false
+        end
+    end))
+end
+
+local function disableNoclip()
+    if noclipMaid then
+        noclipMaid:DoCleaning()
+        noclipMaid = nil
+    end
+    
+    for part, originalState in pairs(noclipTracked) do
+        if part and part.Parent then
+            part.CanCollide = originalState
+        end
+    end
+    noclipTracked = {}
 end
 
 local function stopFacing()
@@ -624,7 +654,6 @@ local function moveToWaypoints(stageWaypoints)
             
             if distance < 4 then
                 if isLastWaypoint then
-                    -- Keep moving toward the boosted Y position for 1 second (hover)
                     local startTime = tick()
                     while tick() - startTime < 1 do
                         if not features.autoFarm or died or not hrp or not humanoid then
@@ -721,15 +750,6 @@ section:AddToggle("Enable Auto Farm", function(bool)
     end
 end)
 
-section:AddToggle("Semi God Mode", function(bool)
-    features.semiGodMode = bool
-    if bool then
-        enableSemiGodMode()
-    else
-        disableSemiGodMode()
-    end
-end)
-
 section:AddDropdown("Select Stage", {
     "Stage 1",
     "Stage 2",
@@ -744,9 +764,29 @@ section:AddDropdown("Select Stage", {
     features.targetStage = selected
 end)
 
+section:AddToggle("Semi God Mode", function(bool)
+    features.semiGodMode = bool
+    if bool then
+        enableSemiGodMode()
+    else
+        disableSemiGodMode()
+    end
+end)
+
+section:AddToggle("Noclip", function(bool)
+    features.noclip = bool
+    if bool then
+        enableNoclip()
+    else
+        disableNoclip()
+    end
+end)
+
 RootNicolas:GiveTask(function()
     features.autoFarm = false
     features.semiGodMode = false
+    features.noclip = false
     stopAutoFarm()
     disableSemiGodMode()
+    disableNoclip()
 end)
