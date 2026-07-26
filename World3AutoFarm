@@ -136,12 +136,61 @@ local stage5ExtraWaypoints = {
     Vector3.new(-1432,534,1330),
 }
 
+local stage6ExtraWaypoints = {
+    Vector3.new(-1405,532,1356),
+    Vector3.new(-1407,532,1444),
+    Vector3.new(-1441,500,1485),
+    Vector3.new(-2035,509,1486),
+    Vector3.new(-2064,442,1486),
+    Vector3.new(-2063,444,1458),
+}
+
+local stage7ExtraWaypoints = {
+    Vector3.new(-2090,442,1485),
+    Vector3.new(-2170,451,1483),
+    Vector3.new(-2300,438,1485),
+    Vector3.new(-2344,447,1486),
+    Vector3.new(-2384,446,1486),
+    Vector3.new(-2418,438,1486),
+    Vector3.new(-2500,446,1486),
+    Vector3.new(-2551,465,1484),
+    Vector3.new(-2659,442,1488),
+    Vector3.new(-2733,451,1486),
+    Vector3.new(-2864,467,1485),
+    Vector3.new(-2864,545,1485),
+    Vector3.new(-2942,543,1485),
+    Vector3.new(-2942,622,1485),
+    Vector3.new(-3015,618,1485),
+    Vector3.new(-3015,699,1485),
+    Vector3.new(-3052,671,1485),
+    Vector3.new(-3218,671,1486),
+    Vector3.new(-3218,673,1459),
+}
+
+local stage8ExtraWaypoints = {
+    Vector3.new(-3244,671,1485),
+    Vector3.new(-3635,616,1485),
+    Vector3.new(-3658,616,1486),
+    Vector3.new(-3658,618,1459),
+}
+
+local stage9ExtraWaypoints = {
+    Vector3.new(-3684,616,1485),
+    Vector3.new(-4107,616,1485),
+    Vector3.new(-4130,616,1485),
+    Vector3.new(-4129,619,1458),
+}
+
 local waypoints = {
     ["Stage 1"] = stage1Waypoints,
     ["Stage 2"] = {},
     ["Stage 3"] = {},
     ["Stage 4"] = {},
     ["Stage 5"] = {},
+    ["Stage 6"] = {},
+    ["Stage 7"] = {},
+    ["Stage 8"] = {},
+    ["Stage 9"] = {},
 }
 
 for i = 1, #stage1Waypoints - 1 do
@@ -188,6 +237,100 @@ for i = 1, #stage4ExtraWaypoints - 1 do
 end
 for _, wp in ipairs(stage5ExtraWaypoints) do
     table.insert(waypoints["Stage 5"], wp)
+end
+
+for i = 1, #stage1Waypoints - 1 do
+    table.insert(waypoints["Stage 6"], stage1Waypoints[i])
+end
+for i = 1, #stage2ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 6"], stage2ExtraWaypoints[i])
+end
+for i = 1, #stage3ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 6"], stage3ExtraWaypoints[i])
+end
+for i = 1, #stage4ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 6"], stage4ExtraWaypoints[i])
+end
+for i = 1, #stage5ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 6"], stage5ExtraWaypoints[i])
+end
+for _, wp in ipairs(stage6ExtraWaypoints) do
+    table.insert(waypoints["Stage 6"], wp)
+end
+
+for i = 1, #stage1Waypoints - 1 do
+    table.insert(waypoints["Stage 7"], stage1Waypoints[i])
+end
+for i = 1, #stage2ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 7"], stage2ExtraWaypoints[i])
+end
+for i = 1, #stage3ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 7"], stage3ExtraWaypoints[i])
+end
+for i = 1, #stage4ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 7"], stage4ExtraWaypoints[i])
+end
+for i = 1, #stage5ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 7"], stage5ExtraWaypoints[i])
+end
+for i = 1, #stage6ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 7"], stage6ExtraWaypoints[i])
+end
+for _, wp in ipairs(stage7ExtraWaypoints) do
+    table.insert(waypoints["Stage 7"], wp)
+end
+
+for i = 1, #stage1Waypoints - 1 do
+    table.insert(waypoints["Stage 8"], stage1Waypoints[i])
+end
+for i = 1, #stage2ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 8"], stage2ExtraWaypoints[i])
+end
+for i = 1, #stage3ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 8"], stage3ExtraWaypoints[i])
+end
+for i = 1, #stage4ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 8"], stage4ExtraWaypoints[i])
+end
+for i = 1, #stage5ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 8"], stage5ExtraWaypoints[i])
+end
+for i = 1, #stage6ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 8"], stage6ExtraWaypoints[i])
+end
+for i = 1, #stage7ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 8"], stage7ExtraWaypoints[i])
+end
+for _, wp in ipairs(stage8ExtraWaypoints) do
+    table.insert(waypoints["Stage 8"], wp)
+end
+
+for i = 1, #stage1Waypoints - 1 do
+    table.insert(waypoints["Stage 9"], stage1Waypoints[i])
+end
+for i = 1, #stage2ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 9"], stage2ExtraWaypoints[i])
+end
+for i = 1, #stage3ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 9"], stage3ExtraWaypoints[i])
+end
+for i = 1, #stage4ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 9"], stage4ExtraWaypoints[i])
+end
+for i = 1, #stage5ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 9"], stage5ExtraWaypoints[i])
+end
+for i = 1, #stage6ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 9"], stage6ExtraWaypoints[i])
+end
+for i = 1, #stage7ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 9"], stage7ExtraWaypoints[i])
+end
+for i = 1, #stage8ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 9"], stage8ExtraWaypoints[i])
+end
+for _, wp in ipairs(stage9ExtraWaypoints) do
+    table.insert(waypoints["Stage 9"], wp)
 end
 
 local DEFAULT_SPEED = 160
