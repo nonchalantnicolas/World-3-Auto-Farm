@@ -66,6 +66,18 @@ local features = {
     semiGodMode = false,
 }
 
+-- Helper function to boost Y by 10 on the last waypoint
+local function boostLastWaypoint(waypoints)
+    if #waypoints == 0 then return waypoints end
+    local boosted = {}
+    for i = 1, #waypoints - 1 do
+        table.insert(boosted, waypoints[i])
+    end
+    local last = waypoints[#waypoints]
+    table.insert(boosted, Vector3.new(last.X, last.Y + 10, last.Z))
+    return boosted
+end
+
 local stage1Waypoints = {
     Vector3.new(-1456,-161,-864),
     Vector3.new(-1480,-161,-864),
@@ -142,8 +154,7 @@ local stage6ExtraWaypoints = {
     Vector3.new(-1441,500,1485),
     Vector3.new(-2035,509,1486),
     Vector3.new(-2064,442,1486),
-    -- Stage 6 final waypoint with boosted Y (original was -2063,444,1458)
-    Vector3.new(-2063,454,1458), -- Boosted Y by 10
+    Vector3.new(-2063,444,1458),
 }
 
 local stage7ExtraWaypoints = {
@@ -333,6 +344,22 @@ end
 for _, wp in ipairs(stage9ExtraWaypoints) do
     table.insert(waypoints["Stage 9"], wp)
 end
+
+-- Boost the last waypoint of every stage
+local function boostAllStages()
+    for stage, wp in pairs(waypoints) do
+        if #wp > 0 then
+            local boosted = {}
+            for i = 1, #wp - 1 do
+                table.insert(boosted, wp[i])
+            end
+            local last = wp[#wp]
+            table.insert(boosted, Vector3.new(last.X, last.Y + 10, last.Z))
+            waypoints[stage] = boosted
+        end
+    end
+end
+boostAllStages()
 
 local DEFAULT_SPEED = 160
 local rotationSpeed = 100
@@ -563,7 +590,6 @@ local function moveToWaypoints(stageWaypoints)
     if not stageWaypoints then return end
     
     died = false
-    local isStage6 = (stageWaypoints == waypoints["Stage 6"])
     
     for i, targetPos in ipairs(stageWaypoints) do
         if not features.autoFarm then
@@ -580,9 +606,7 @@ local function moveToWaypoints(stageWaypoints)
         moving = true
         startFacing()
         
-        -- Check if this is the last waypoint and it's Stage 6
         local isLastWaypoint = (i == #stageWaypoints)
-        local isStage6Final = isStage6 and isLastWaypoint
         
         while moving do
             if not features.autoFarm then
@@ -599,7 +623,7 @@ local function moveToWaypoints(stageWaypoints)
             local distance = offset.Magnitude
             
             if distance < 4 then
-                if isStage6Final then
+                if isLastWaypoint then
                     -- Keep moving toward the boosted Y position for 1 second (hover)
                     local startTime = tick()
                     while tick() - startTime < 1 do
@@ -614,7 +638,6 @@ local function moveToWaypoints(stageWaypoints)
                             humanoid:Move(hoverDir, false)
                             hrp.AssemblyLinearVelocity = hoverDir * 10
                         else
-                            -- Lock in place at the boosted Y position
                             hrp.AssemblyLinearVelocity = Vector3.zero
                         end
                         task.wait()
@@ -633,8 +656,7 @@ local function moveToWaypoints(stageWaypoints)
             task.wait()
         end
         
-        if isStage6Final then
-            -- After the hover, stop and let gravity drop you
+        if isLastWaypoint then
             stopMoving()
             break
         end
