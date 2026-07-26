@@ -81,6 +81,8 @@ local character, hrp, humanoid
 local moving = false
 local currentTarget = nil
 local currentSpeed = DEFAULT_SPEED
+local died = false
+local needsFreshCharacter = false
 
 local facingConn
 local att
@@ -182,11 +184,60 @@ local function stopMoving()
     end
 end
 
+local function onDeath()
+    died = true
+    needsFreshCharacter = true
+    stopMoving()
+end
+
+local function getCharacter()
+    if needsFreshCharacter then
+        character = LocalPlayer.Character
+        if character then
+            local tempHumanoid = character:FindFirstChild("Humanoid")
+            if tempHumanoid and tempHumanoid.Health > 0 then
+                needsFreshCharacter = false
+            else
+                character = LocalPlayer.CharacterAdded:Wait()
+                needsFreshCharacter = false
+            end
+        else
+            character = LocalPlayer.CharacterAdded:Wait()
+            needsFreshCharacter = false
+        end
+    else
+        character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    end
+    if not character then return false end
+
+    local attempts = 0
+    while attempts < 15 do
+        hrp = character:FindFirstChild("HumanoidRootPart")
+        humanoid = character:FindFirstChild("Humanoid")
+        if hrp and humanoid and humanoid.Health > 0 then break end
+        task.wait(0.2)
+        attempts = attempts + 1
+    end
+
+    if humanoid and humanoid.Health > 0 then
+        humanoid.Died:Connect(onDeath)
+        return true
+    end
+    return false
+end
+
 local function moveToWaypoints(stageWaypoints)
     if not stageWaypoints then return end
     
+    died = false
+    
     for i, targetPos in ipairs(stageWaypoints) do
         if not features.autoFarm then
+            stopMoving()
+            return
+        end
+        
+        if died then
             stopMoving()
             return
         end
@@ -196,7 +247,12 @@ local function moveToWaypoints(stageWaypoints)
         startFacing()
         
         while moving do
-            if not features.autoFarm or not hrp or not humanoid then
+            if not features.autoFarm then
+                stopMoving()
+                return
+            end
+            
+            if died or not hrp or not humanoid then
                 stopMoving()
                 return
             end
@@ -218,17 +274,26 @@ local function moveToWaypoints(stageWaypoints)
 end
 
 local function startAutoFarm()
-    local stageWaypoints = waypoints[features.targetStage]
-    if not stageWaypoints then return end
-    
-    character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    if not character then return end
-    
-    hrp = character:FindFirstChild("HumanoidRootPart")
-    humanoid = character:FindFirstChild("Humanoid")
-    if not hrp or not humanoid then return end
-    
-    moveToWaypoints(stageWaypoints)
+    while features.autoFarm do
+        while not getCharacter() do
+            task.wait(0.5)
+        end
+        
+        task.wait(0.5)
+        
+        local stageWaypoints = waypoints[features.targetStage]
+        if not stageWaypoints then return end
+        
+        moveToWaypoints(stageWaypoints)
+        
+        if died then
+            died = false
+            needsFreshCharacter = true
+            task.wait(0.2)
+        else
+            task.wait(1)
+        end
+    end
 end
 
 local function stopAutoFarm()
@@ -236,6 +301,8 @@ local function stopAutoFarm()
     character = nil
     hrp = nil
     humanoid = nil
+    died = false
+    needsFreshCharacter = false
 end
 
 local section = shared.AddSection("World 3 Auto Farm")
