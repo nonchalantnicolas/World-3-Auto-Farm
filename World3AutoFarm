@@ -52,17 +52,190 @@ local RootNicolas = nicolas.new()
 local shared = odh_shared_plugins
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 
 local features = {
     autoFarm = false,
-    targetLevel = "Level 1",
+    targetStage = "Stage 1",
 }
 
+local waypoints = {
+    ["Stage 1"] = {
+        Vector3.new(-1456,-161,-864),
+        Vector3.new(-1480,-161,-864),
+        Vector3.new(-1482,-140,-777),
+        Vector3.new(-1480,-108,-675),
+        Vector3.new(-1480,-77,-576),
+        Vector3.new(-1482,-70,-532),
+        Vector3.new(-1456,-70,-519),
+        Vector3.new(-1483,-68,-517),
+    },
+}
+
+local DEFAULT_SPEED = 160
+local rotationSpeed = 100
+
+local character, hrp, humanoid
+local moving = false
+local currentTarget = nil
+local currentSpeed = DEFAULT_SPEED
+
+local facingConn
+local att
+local angVel
+local autoRotateThread
+
+local function stopFacing()
+    if facingConn then
+        facingConn:Disconnect()
+        facingConn = nil
+    end
+    if att then
+        att:Destroy()
+        att = nil
+    end
+    if angVel then
+        angVel:Destroy()
+        angVel = nil
+    end
+    if autoRotateThread then
+        autoRotateThread:Disconnect()
+        autoRotateThread = nil
+    end
+    if humanoid then
+        humanoid.AutoRotate = true
+    end
+end
+
+local function startFacing()
+    if not hrp then return end
+
+    stopFacing()
+
+    autoRotateThread = RunService.Heartbeat:Connect(function()
+        if humanoid and humanoid.Parent then
+            humanoid.AutoRotate = false
+        end
+    end)
+
+    att = Instance.new("Attachment")
+    att.Parent = hrp
+
+    angVel = Instance.new("AngularVelocity")
+    angVel.Attachment0 = att
+    angVel.RelativeTo = Enum.ActuatorRelativeTo.World
+    angVel.MaxTorque = math.huge
+    angVel.AngularVelocity = Vector3.zero
+    angVel.Parent = hrp
+
+    facingConn = RunService.RenderStepped:Connect(function()
+        if not hrp or not hrp.Parent then return end
+
+        local _, y, _ = hrp.CFrame:ToOrientation()
+        hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, y, 0)
+
+        if not currentTarget then
+            angVel.AngularVelocity = Vector3.zero
+            return
+        end
+
+        local myPos = hrp.Position
+        local targetPos = currentTarget
+
+        local dir = Vector3.new(
+            targetPos.X - myPos.X,
+            0,
+            targetPos.Z - myPos.Z
+        )
+
+        if dir.Magnitude < 0.001 then
+            angVel.AngularVelocity = Vector3.zero
+            return
+        end
+
+        dir = dir.Unit
+
+        local look = hrp.CFrame.LookVector
+        local cross = look:Cross(dir)
+        local dot = math.clamp(look:Dot(dir), -1, 1)
+        local angle = math.acos(dot)
+
+        angVel.AngularVelocity = Vector3.new(
+            0,
+            cross.Y * angle * rotationSpeed,
+            0
+        )
+    end)
+end
+
+local function stopMoving()
+    moving = false
+    currentTarget = nil
+    stopFacing()
+    if humanoid then
+        humanoid:Move(Vector3.zero, false)
+    end
+    if hrp then
+        hrp.AssemblyLinearVelocity = Vector3.zero
+    end
+end
+
+local function moveToWaypoints(stageWaypoints)
+    if not stageWaypoints then return end
+    
+    for i, targetPos in ipairs(stageWaypoints) do
+        if not features.autoFarm then
+            stopMoving()
+            return
+        end
+        
+        currentTarget = targetPos
+        moving = true
+        startFacing()
+        
+        while moving do
+            if not features.autoFarm or not hrp or not humanoid then
+                stopMoving()
+                return
+            end
+            
+            local offset = targetPos - hrp.Position
+            local distance = offset.Magnitude
+            
+            if distance < 4 then
+                stopMoving()
+                break
+            end
+            
+            local direction = offset.Unit
+            humanoid:Move(direction, false)
+            hrp.AssemblyLinearVelocity = direction * currentSpeed
+            task.wait()
+        end
+    end
+end
+
 local function startAutoFarm()
+    local stageWaypoints = waypoints[features.targetStage]
+    if not stageWaypoints then return end
+    
+    character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    if not character then return end
+    
+    hrp = character:FindFirstChild("HumanoidRootPart")
+    humanoid = character:FindFirstChild("Humanoid")
+    if not hrp or not humanoid then return end
+    
+    moveToWaypoints(stageWaypoints)
 end
 
 local function stopAutoFarm()
+    stopMoving()
+    character = nil
+    hrp = nil
+    humanoid = nil
 end
 
 local section = shared.AddSection("World 3 Auto Farm")
@@ -72,24 +245,24 @@ section:AddParagraph("Additional Info", "Auto Farm For World 3 In +1 Speed Keybo
 section:AddToggle("Enable Auto Farm", function(bool)
     features.autoFarm = bool
     if bool then
-        startAutoFarm()
+        task.spawn(startAutoFarm)
     else
         stopAutoFarm()
     end
 end)
 
-section:AddDropdown("Select Level", {
-    "Level 1",
-    "Level 2",
-    "Level 3",
-    "Level 4",
-    "Level 5",
-    "Level 6",
-    "Level 7",
-    "Level 8",
-    "Level 9",
+section:AddDropdown("Select Stage", {
+    "Stage 1",
+    "Stage 2",
+    "Stage 3",
+    "Stage 4",
+    "Stage 5",
+    "Stage 6",
+    "Stage 7",
+    "Stage 8",
+    "Stage 9",
 }, function(selected)
-    features.targetLevel = selected
+    features.targetStage = selected
 end)
 
 RootNicolas:GiveTask(function()
