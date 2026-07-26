@@ -82,20 +82,46 @@ local stage2ExtraWaypoints = {
     Vector3.new(-1458,-59,-392),
     Vector3.new(-1458,-58,-265),
     Vector3.new(-1455,-58,-17),
-    Vector3.new(-1481,-56,-17),
+    Vector3.new(-1481,-56,-17), -- WinBlock for Stage 2
+}
+
+local stage3ExtraWaypoints = {
+    Vector3.new(-1454,-58,9),
+    Vector3.new(-1455,-58,80),
+    Vector3.new(-1455,94,80),
+    Vector3.new(-1455,89,92),
+    Vector3.new(-1476,89,90),
+    Vector3.new(-1476,225,90),
+    Vector3.new(-1453,215,150),
+    Vector3.new(-1453,223,181),
+    Vector3.new(-1456,223,228),
+    Vector3.new(-1455,214,330),
+    Vector3.new(-1482,216,332), -- WinBlock for Stage 3
 }
 
 local waypoints = {
     ["Stage 1"] = stage1Waypoints,
     ["Stage 2"] = {},
+    ["Stage 3"] = {},
 }
 
--- Stage 2 = Stage 1 waypoints WITHOUT the last one (WinBlock) + Stage 2 extra waypoints
+-- Stage 2 = Stage 1 waypoints WITHOUT the last one + Stage 2 extra waypoints
 for i = 1, #stage1Waypoints - 1 do
     table.insert(waypoints["Stage 2"], stage1Waypoints[i])
 end
 for _, wp in ipairs(stage2ExtraWaypoints) do
     table.insert(waypoints["Stage 2"], wp)
+end
+
+-- Stage 3 = Stage 1 waypoints WITHOUT the last one + Stage 2 extra waypoints WITHOUT the last one + Stage 3 extra waypoints
+for i = 1, #stage1Waypoints - 1 do
+    table.insert(waypoints["Stage 3"], stage1Waypoints[i])
+end
+for i = 1, #stage2ExtraWaypoints - 1 do
+    table.insert(waypoints["Stage 3"], stage2ExtraWaypoints[i])
+end
+for _, wp in ipairs(stage3ExtraWaypoints) do
+    table.insert(waypoints["Stage 3"], wp)
 end
 
 local DEFAULT_SPEED = 160
