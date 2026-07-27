@@ -55,6 +55,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
 local PLACE_ID = 93411036959889
@@ -65,9 +66,13 @@ local features = {
     autoFarm = false,
     targetStage = "Stage 1",
     semiGodMode = false,
+    autoRebirth = false,
     noclip = false,
     fpsBoost = false,
 }
+
+local rebirthRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Rebirth")
+local rebirthCooldown = 0
 
 local stage1Waypoints = {
     Vector3.new(-1456,-161,-864),
@@ -373,8 +378,30 @@ local noclipTracked = {}
 local fpsBoostMaid = nil
 local Terrain = Workspace.Terrain
 
-local function isWorld3()
-    return game.PlaceId == PLACE_ID
+local function getGameType()
+    local placeId = game.PlaceId
+    if placeId == PLACE_ID then
+        return "world3"
+    elseif placeId == WORLD_2_ID then
+        return "world2"
+    elseif placeId == WORLD_1_ID then
+        return "world1"
+    else
+        return "other"
+    end
+end
+
+local function checkWorld3()
+    local gameType = getGameType()
+    if gameType == "world3" then
+        return true
+    elseif gameType == "world1" or gameType == "world2" then
+        shared.Notify("This feature was intended for World 3 ONLY", 3)
+        return false
+    else
+        shared.Notify("This feature is not intended for this game", 3)
+        return false
+    end
 end
 
 local function shouldDisable(part)
@@ -405,8 +432,7 @@ local function track(obj)
 end
 
 local function enableSemiGodMode()
-    if not isWorld3() then
-        shared.Notify("Semi God Mode only works in World 3!", 3)
+    if not checkWorld3() then
         features.semiGodMode = false
         return
     end
@@ -454,8 +480,7 @@ local function disableSemiGodMode()
 end
 
 local function enableNoclip()
-    if not isWorld3() then
-        shared.Notify("Noclip only works in World 3!", 3)
+    if not checkWorld3() then
         features.noclip = false
         return
     end
@@ -566,8 +591,7 @@ local function Optimize(obj)
 end
 
 local function enableFpsBoost()
-    if not isWorld3() then
-        shared.Notify("FPS Boost only works in World 3!", 3)
+    if not checkWorld3() then
         features.fpsBoost = false
         return
     end
@@ -830,8 +854,7 @@ local function moveToWaypoints(stageWaypoints)
 end
 
 local function startAutoFarm()
-    if not isWorld3() then
-        shared.Notify("Auto Farm only works in World 3!", 3)
+    if not checkWorld3() then
         features.autoFarm = false
         return
     end
@@ -903,6 +926,10 @@ section:AddToggle("Semi God Mode", function(bool)
     end
 end)
 
+section:AddToggle("Auto Rebirth", function(bool)
+    features.autoRebirth = bool
+end)
+
 section:AddToggle("Noclip", function(bool)
     features.noclip = bool
     if bool then
@@ -921,9 +948,18 @@ section:AddToggle("FPS Boost", function(bool)
     end
 end)
 
+-- Auto Rebirth loop
+RunService.Heartbeat:Connect(function()
+    if features.autoRebirth and tick() >= rebirthCooldown then
+        rebirthRemote:FireServer()
+        rebirthCooldown = tick() + 5
+    end
+end)
+
 RootNicolas:GiveTask(function()
     features.autoFarm = false
     features.semiGodMode = false
+    features.autoRebirth = false
     features.noclip = false
     features.fpsBoost = false
     stopAutoFarm()
