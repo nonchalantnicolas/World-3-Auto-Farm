@@ -742,38 +742,37 @@ local function onDeath()
 end
 
 local function getCharacter()
-    if needsFreshCharacter then
-        character = LocalPlayer.Character
-        if character then
-            local tempHumanoid = character:FindFirstChild("Humanoid")
-            if tempHumanoid and tempHumanoid.Health > 0 then
-                needsFreshCharacter = false
-            else
-                character = LocalPlayer.CharacterAdded:Wait()
-                needsFreshCharacter = false
-            end
-        else
-            character = LocalPlayer.CharacterAdded:Wait()
-            needsFreshCharacter = false
-        end
-    else
-        character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local character = LocalPlayer.Character
+    if not character then
+        character = LocalPlayer.CharacterAdded:Wait()
     end
-    if not character then return false end
-
+    
     local attempts = 0
     while attempts < 15 do
         hrp = character:FindFirstChild("HumanoidRootPart")
         humanoid = character:FindFirstChild("Humanoid")
-        if hrp and humanoid and humanoid.Health > 0 then break end
+        if hrp and humanoid and humanoid.Health > 0 then
+            died = false
+            needsFreshCharacter = false
+            
+            if humanoid then
+                humanoid.Died:Connect(onDeath)
+            end
+            
+            if features.noclip then
+                for _, part in ipairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+            
+            return true
+        end
         task.wait(0.2)
         attempts = attempts + 1
     end
-
-    if humanoid and humanoid.Health > 0 then
-        humanoid.Died:Connect(onDeath)
-        return true
-    end
+    
     return false
 end
 
@@ -862,6 +861,7 @@ local function startAutoFarm()
     while features.autoFarm do
         while not getCharacter() do
             task.wait(0.5)
+            if not features.autoFarm then return end
         end
         
         task.wait(0.5)
@@ -874,7 +874,7 @@ local function startAutoFarm()
         if died then
             died = false
             needsFreshCharacter = true
-            task.wait(0.2)
+            task.wait(0.5)
         else
             task.wait(1)
         end
@@ -948,7 +948,6 @@ section:AddToggle("FPS Boost", function(bool)
     end
 end)
 
--- Auto Rebirth loop
 RunService.Heartbeat:Connect(function()
     if features.autoRebirth and tick() >= rebirthCooldown then
         rebirthRemote:FireServer()
