@@ -356,7 +356,7 @@ local function boostAllStages()
 end
 boostAllStages()
 
-local DEFAULT_SPEED = 160
+local DEFAULT_SPEED = 140
 local rotationSpeed = 100
 
 local character, hrp, humanoid
