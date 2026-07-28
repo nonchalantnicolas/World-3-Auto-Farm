@@ -73,6 +73,7 @@ local features = {
     autoRebirth = false,
     noclip = false,
     fpsBoost = false,
+    enableSoundPack = false,
     soundPack = "Premium",
 }
 
@@ -100,10 +101,10 @@ local function getMaxSpeed()
     return nil
 end
 
--- Set initial sound pack
-local soundPackValue = LocalPlayer:FindFirstChild("EquippedSoundPack")
-if soundPackValue then
-    features.soundPack = soundPackValue.Value
+-- Set initial sound pack from attribute
+local currentSoundPack = LocalPlayer:GetAttribute("EquippedSoundPack")
+if currentSoundPack then
+    features.soundPack = currentSoundPack
 end
 
 local stage1Waypoints = {
@@ -864,7 +865,6 @@ local function moveToWaypoints(stageWaypoints)
                         task.wait()
                     end
                     
-                    -- Teleport 13.5 studs below the boosted position (directly into the WinBlock)
                     local teleportPos = targetPos + Vector3.new(0, -13.5, 0)
                     hrp.CFrame = CFrame.new(teleportPos)
                     hrp.AssemblyLinearVelocity = Vector3.zero
@@ -1004,6 +1004,14 @@ section:AddToggle("FPS Boost", function(bool)
     end
 end)
 
+section:AddToggle("Enable Premium Sound Pack", function(bool)
+    features.enableSoundPack = bool
+    if not bool then
+        LocalPlayer:SetAttribute("EquippedSoundPack", "Premium")
+        features.soundPack = "Premium"
+    end
+end)
+
 section:AddDropdown("Premium Sound Pack", {
     "Premium",
     "Water",
@@ -1015,9 +1023,8 @@ section:AddDropdown("Premium Sound Pack", {
     "Slime",
 }, function(selected)
     features.soundPack = selected
-    local soundPackValue = LocalPlayer:FindFirstChild("EquippedSoundPack")
-    if soundPackValue then
-        soundPackValue.Value = selected
+    if features.enableSoundPack then
+        LocalPlayer:SetAttribute("EquippedSoundPack", selected)
     end
 end)
 
@@ -1046,6 +1053,7 @@ RootNicolas:GiveTask(function()
     features.autoRebirth = false
     features.noclip = false
     features.fpsBoost = false
+    features.enableSoundPack = false
     features.soundPack = "Premium"
     stopAutoFarm()
     disableSemiGodMode()
