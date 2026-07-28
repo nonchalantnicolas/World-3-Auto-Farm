@@ -66,7 +66,7 @@ local WORLD_1_ID = 95082159892680
 
 local features = {
     autoFarm = false,
-    useSliderSpeed = false,
+    useCustomSpeed = false,
     farmSpeed = 140,
     targetStage = "Stage 1",
     semiGodMode = false,
@@ -857,8 +857,8 @@ local function moveToWaypoints(stageWaypoints)
                         task.wait()
                     end
                     
-                    -- Teleport 12 studs below the boosted position (directly into the WinBlock)
-                    local teleportPos = targetPos + Vector3.new(0, -12, 0)
+                    -- Teleport 15 studs below the boosted position (directly into the WinBlock)
+                    local teleportPos = targetPos + Vector3.new(0, -15, 0)
                     hrp.CFrame = CFrame.new(teleportPos)
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     task.wait(0.1)
@@ -935,13 +935,13 @@ section:AddToggle("Enable Auto Farm", function(bool)
     end
 end)
 
-section:AddToggle("Use Slider Speed", function(bool)
-    features.useSliderSpeed = bool
+section:AddToggle("Use Custom Auto Farm Speed", function(bool)
+    features.useCustomSpeed = bool
 end)
 
-section:AddSlider("Auto Farm Speed (recommend 140)", 100, 250, 140, function(value)
+section:AddSlider("Custom Auto Farm Speed (recommend 140)", 100, 250, 140, function(value)
     features.farmSpeed = value
-    if features.useSliderSpeed then
+    if features.useCustomSpeed then
         currentSpeed = value
     end
 end)
@@ -1004,7 +1004,7 @@ RunService.Heartbeat:Connect(function()
     end
     
     if features.autoFarm and hrp and humanoid then
-        if features.useSliderSpeed then
+        if features.useCustomSpeed then
             currentSpeed = features.farmSpeed
         else
             local maxSpeed = getMaxSpeed()
@@ -1017,7 +1017,7 @@ end)
 
 RootNicolas:GiveTask(function()
     features.autoFarm = false
-    features.useSliderSpeed = false
+    features.useCustomSpeed = false
     features.semiGodMode = false
     features.autoRebirth = false
     features.noclip = false
