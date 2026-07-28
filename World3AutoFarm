@@ -856,6 +856,13 @@ local function moveToWaypoints(stageWaypoints)
                         end
                         task.wait()
                     end
+                    
+                    -- Teleport 12 studs below the boosted position (directly into the WinBlock)
+                    local teleportPos = targetPos + Vector3.new(0, -12, 0)
+                    hrp.CFrame = CFrame.new(teleportPos)
+                    hrp.AssemblyLinearVelocity = Vector3.zero
+                    task.wait(0.1)
+                    
                     stopMoving()
                     break
                 else
@@ -996,7 +1003,6 @@ RunService.Heartbeat:Connect(function()
         rebirthCooldown = tick() + 5
     end
     
-    -- Update speed based on Use Slider Speed toggle
     if features.autoFarm and hrp and humanoid then
         if features.useSliderSpeed then
             currentSpeed = features.farmSpeed
