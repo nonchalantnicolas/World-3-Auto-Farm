@@ -943,6 +943,10 @@ section:AddToggle("Enable Auto Farm", function(bool)
 end)
 
 section:AddToggle("Use Custom Auto Farm Speed", function(bool)
+    if not checkWorld3() then
+        features.useCustomSpeed = false
+        return
+    end
     features.useCustomSpeed = bool
 end)
 
