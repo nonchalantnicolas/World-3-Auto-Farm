@@ -66,12 +66,13 @@ local WORLD_1_ID = 95082159892680
 
 local features = {
     autoFarm = false,
+    useSliderSpeed = false,
+    farmSpeed = 140,
     targetStage = "Stage 1",
     semiGodMode = false,
     autoRebirth = false,
     noclip = false,
     fpsBoost = false,
-    farmSpeed = 140,
 }
 
 local rebirthRemote = ReplicatedStorage:FindFirstChild("Remotes")
@@ -80,6 +81,23 @@ if rebirthRemote then
 end
 
 local rebirthCooldown = 0
+local currentSpeedLabel = 0
+
+local function getMaxSpeed()
+    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+    if not playerGui then return end
+    
+    for _, obj in ipairs(playerGui:GetDescendants()) do
+        if obj:IsA("TextLabel") and obj.Text and obj.Text:find("Your Max Speed:") then
+            local speedText = obj.Text
+            local speedValue = speedText:match("Your Max Speed: (%d+)")
+            if speedValue then
+                return tonumber(speedValue)
+            end
+        end
+    end
+    return nil
+end
 
 local stage1Waypoints = {
     Vector3.new(-1456,-161,-864),
@@ -910,9 +928,15 @@ section:AddToggle("Enable Auto Farm", function(bool)
     end
 end)
 
-section:AddSlider("Auto Farm Speed", 100, 250, features.farmSpeed, function(value)
+section:AddToggle("Use Slider Speed", function(bool)
+    features.useSliderSpeed = bool
+end)
+
+section:AddSlider("Auto Farm Speed (recommend 140)", 100, 250, 140, function(value)
     features.farmSpeed = value
-    currentSpeed = value
+    if features.useSliderSpeed then
+        currentSpeed = value
+    end
 end)
 
 section:AddDropdown("Select Stage", {
@@ -971,10 +995,23 @@ RunService.Heartbeat:Connect(function()
         rebirthRemote:FireServer()
         rebirthCooldown = tick() + 5
     end
+    
+    -- Update speed based on Use Slider Speed toggle
+    if features.autoFarm and hrp and humanoid then
+        if features.useSliderSpeed then
+            currentSpeed = features.farmSpeed
+        else
+            local maxSpeed = getMaxSpeed()
+            if maxSpeed then
+                currentSpeed = maxSpeed
+            end
+        end
+    end
 end)
 
 RootNicolas:GiveTask(function()
     features.autoFarm = false
+    features.useSliderSpeed = false
     features.semiGodMode = false
     features.autoRebirth = false
     features.noclip = false
