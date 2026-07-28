@@ -71,6 +71,7 @@ local features = {
     autoRebirth = false,
     noclip = false,
     fpsBoost = false,
+    farmSpeed = 140,
 }
 
 local rebirthRemote = ReplicatedStorage:FindFirstChild("Remotes")
@@ -909,6 +910,11 @@ section:AddToggle("Enable Auto Farm", function(bool)
     end
 end)
 
+section:AddSlider("Auto Farm Speed", 100, 250, features.farmSpeed, function(value)
+    features.farmSpeed = value
+    currentSpeed = value
+end)
+
 section:AddDropdown("Select Stage", {
     "Stage 1",
     "Stage 2",
@@ -934,6 +940,12 @@ end)
 
 section:AddToggle("Auto Rebirth", function(bool)
     features.autoRebirth = bool
+    if bool then
+        if not checkWorld3() then
+            features.autoRebirth = false
+            return
+        end
+    end
 end)
 
 section:AddToggle("Noclip", function(bool)
