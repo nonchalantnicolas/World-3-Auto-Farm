@@ -939,7 +939,7 @@ section:AddToggle("Use Custom Auto Farm Speed", function(bool)
     features.useCustomSpeed = bool
 end)
 
-section:AddSlider("Custom Auto Farm Speed (recommend 140)", 100, 250, 140, function(value)
+section:AddSlider("Custom Auto Farm Speed", 100, 250, 140, function(value)
     features.farmSpeed = value
     if features.useCustomSpeed then
         currentSpeed = value
