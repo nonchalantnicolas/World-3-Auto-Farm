@@ -1005,11 +1005,11 @@ section:AddToggle("FPS Boost", function(bool)
 end)
 
 section:AddToggle("Enable Premium Sound Pack", function(bool)
-    features.enableSoundPack = bool
-    if not bool then
-        LocalPlayer:SetAttribute("EquippedSoundPack", "Premium")
-        features.soundPack = "Premium"
+    if not checkWorld3() then
+        features.enableSoundPack = false
+        return
     end
+    features.enableSoundPack = bool
 end)
 
 section:AddDropdown("Premium Sound Pack", {
@@ -1022,6 +1022,9 @@ section:AddDropdown("Premium Sound Pack", {
     "Snow",
     "Slime",
 }, function(selected)
+    if not checkWorld3() then
+        return
+    end
     features.soundPack = selected
     if features.enableSoundPack then
         LocalPlayer:SetAttribute("EquippedSoundPack", selected)
