@@ -73,6 +73,7 @@ local features = {
     autoRebirth = false,
     noclip = false,
     fpsBoost = false,
+    soundPack = "Premium",
 }
 
 local rebirthRemote = ReplicatedStorage:FindFirstChild("Remotes")
@@ -97,6 +98,12 @@ local function getMaxSpeed()
         end
     end
     return nil
+end
+
+-- Set initial sound pack
+local soundPackValue = LocalPlayer:FindFirstChild("EquippedSoundPack")
+if soundPackValue then
+    features.soundPack = soundPackValue.Value
 end
 
 local stage1Waypoints = {
@@ -857,8 +864,8 @@ local function moveToWaypoints(stageWaypoints)
                         task.wait()
                     end
                     
-                    -- Teleport 15 studs below the boosted position (directly into the WinBlock)
-                    local teleportPos = targetPos + Vector3.new(0, -15, 0)
+                    -- Teleport 13.5 studs below the boosted position (directly into the WinBlock)
+                    local teleportPos = targetPos + Vector3.new(0, -13.5, 0)
                     hrp.CFrame = CFrame.new(teleportPos)
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     task.wait(0.1)
@@ -997,6 +1004,23 @@ section:AddToggle("FPS Boost", function(bool)
     end
 end)
 
+section:AddDropdown("Premium Sound Pack", {
+    "Premium",
+    "Water",
+    "Bubble",
+    "Christmas",
+    "Lava",
+    "Honey",
+    "Snow",
+    "Slime",
+}, function(selected)
+    features.soundPack = selected
+    local soundPackValue = LocalPlayer:FindFirstChild("EquippedSoundPack")
+    if soundPackValue then
+        soundPackValue.Value = selected
+    end
+end)
+
 RunService.Heartbeat:Connect(function()
     if features.autoRebirth and rebirthRemote and tick() >= rebirthCooldown then
         rebirthRemote:FireServer()
@@ -1022,6 +1046,7 @@ RootNicolas:GiveTask(function()
     features.autoRebirth = false
     features.noclip = false
     features.fpsBoost = false
+    features.soundPack = "Premium"
     stopAutoFarm()
     disableSemiGodMode()
     disableNoclip()
