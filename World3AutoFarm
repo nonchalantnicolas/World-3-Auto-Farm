@@ -48,6 +48,8 @@ function nicolas:Destroy()
     self:DoCleaning()
 end
 
+local success, err = pcall(function()
+
 local RootNicolas = nicolas.new()
 local shared = odh_shared_plugins
 
@@ -67,7 +69,11 @@ local features = {
     fpsBoost = false,
 }
 
-local rebirthRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Rebirth")
+local rebirthRemote = ReplicatedStorage:FindFirstChild("Remotes")
+if rebirthRemote then
+    rebirthRemote = rebirthRemote:FindFirstChild("Rebirth")
+end
+
 local rebirthCooldown = 0
 
 local stage1Waypoints = {
@@ -899,7 +905,7 @@ section:AddToggle("FPS Boost", function(bool)
 end)
 
 RunService.Heartbeat:Connect(function()
-    if features.autoRebirth and tick() >= rebirthCooldown then
+    if features.autoRebirth and rebirthRemote and tick() >= rebirthCooldown then
         rebirthRemote:FireServer()
         rebirthCooldown = tick() + 5
     end
@@ -916,3 +922,9 @@ RootNicolas:GiveTask(function()
     disableNoclip()
     disableFpsBoost()
 end)
+
+end) -- end of pcall
+
+if not success then
+    warn("World 3 Auto Farm failed to load: " .. tostring(err))
+end
