@@ -120,11 +120,15 @@ local stage1Waypoints = {
 
 local stage2ExtraWaypoints = {
     Vector3.new(-1456,-71,-489),
-    Vector3.new(-1457,-70,-438),
-    Vector3.new(-1458,-59,-392),
-    Vector3.new(-1458,-58,-265),
-    Vector3.new(-1455,-58,-17),
-    Vector3.new(-1481,-56,-17),
+    Vector3.new(-1455,-70,-439),
+    Vector3.new(-1455,-66,-420),
+    Vector3.new(-1455,-59,-392),
+    Vector3.new(-1455,-58,-349),
+    Vector3.new(-1459,-58,-264),
+    Vector3.new(-1456,-58,-198),
+    Vector3.new(-1457,-58,-126),
+    Vector3.new(-1455,-58,-16),
+    Vector3.new(-1482,-56,-16),
 }
 
 local stage3ExtraWaypoints = {
@@ -870,6 +874,10 @@ local function moveToWaypoints(stageWaypoints)
                     hrp.AssemblyLinearVelocity = Vector3.zero
                     task.wait(0.1)
                     
+                    if features.autoRebirth and rebirthRemote then
+                        rebirthRemote:FireServer()
+                    end
+                    
                     stopMoving()
                     break
                 else
@@ -1036,11 +1044,6 @@ section:AddDropdown("Premium Sound Pack", {
 end)
 
 RunService.Heartbeat:Connect(function()
-    if features.autoRebirth and rebirthRemote and tick() >= rebirthCooldown then
-        rebirthRemote:FireServer()
-        rebirthCooldown = tick() + 5
-    end
-    
     if features.autoFarm and hrp and humanoid then
         if features.useCustomSpeed then
             currentSpeed = features.farmSpeed
@@ -1050,6 +1053,11 @@ RunService.Heartbeat:Connect(function()
                 currentSpeed = maxSpeed
             end
         end
+    end
+    
+    if not features.autoFarm and features.autoRebirth and rebirthRemote and tick() >= rebirthCooldown then
+        rebirthRemote:FireServer()
+        rebirthCooldown = tick() + 3
     end
 end)
 
